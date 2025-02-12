@@ -1,0 +1,4 @@
+__pycache__/
+archive/
+*.pyc
+*.pyo

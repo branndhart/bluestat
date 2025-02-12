@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ stats.get('nickname') }} card</title>
+    <link
+      rel="icon"
+      type="image/jpeg"
+      href="{{ url_for('static', filename='img/favicon.jpeg') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    {% if stats %}
+    <!-- <canvas id="stars"></canvas> -->
+    <div class="stats_container">
+      <div class="inner_block">
+        <div class="stat_container__inner">
+          <div class="firepower">FIREPOWER</div>
+          <div class="data_firepower">
+            <!-- <div class="fp_background">1</div> -->
+            {{ stats.get('firepower', 'N/A') }}/100
+          </div>
+        </div>
+        <div class="stat_container__inner last">
+          <div class="stat_block">
+            <div class="three_blocks">
+              <div class="stats_block">
+                <div class="name_data">ELO</div>
+                <div class="data">{{ stats.get('elo', 'N/A') }}</div>
+              </div>
+              <div class="stats_block">
+                <div class="name_data">ADR</div>
+                <div class="data">{{ stats.get('adr', 'N/A') }}</div>
+              </div>
+              <div class="stats_block last">
+                <div class="name_data">HS</div>
+                <div class="data">{{ stats.get('hs_percentage', 'N/A') }}%</div>
+              </div>
+            </div>
+            <div class="three_blocks">
+              <div class="stats_block">
+                <div class="name_data">AVG</div>
+                <div class="data">{{ stats.get('avg_kills', 'N/A') }}</div>
+              </div>
+              <div class="stats_block">
+                <div
+                  class="name_data"
+                  style="font-size: 12px; font-weight: 800; text-align: center"
+                >
+                  ENTRY SUCCESS
+                </div>
+                <div class="data">{{ stats.get('entry_success', 'N/A') }}%</div>
+              </div>
+              <div class="stats_block last">
+                <div class="name_data">K/D</div>
+                <div class="data">{{ stats.get('kd_ratio', 'N/A') }}</div>
+              </div>
+            </div>
+            <div
+              class="lvl_block"
+              style="background-image: url('{{ stats.player_image }}'); background-size: cover; background-position: center;"
+            ></div>
+          </div>
+        </div>
+        <div class="title">last 20 matches</div>
+      </div>
+    </div>
+    {% else %}
+    <p>Введите никнейм для получения статистики.</p>
+    {% endif %}
+
+    <script>
+      function updateStats() {
+        fetch(window.location.href)
+          .then((response) => response.text())
+          .then((html) => {
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, "text/html");
+
+            // Обновляем только контейнер с данными
+            const newStats = newDoc.querySelector(".stats_container");
+            if (newStats) {
+              document.querySelector(".stats_container").innerHTML =
+                newStats.innerHTML;
+            }
+          })
+          .catch((error) =>
+            console.error("Ошибка при обновлении данных:", error)
+          );
+      }
+
+      // Обновляем каждые 30 секунд
+      setInterval(updateStats, 30000);
+    </script>
+  </body>
+</html>
