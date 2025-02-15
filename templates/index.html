@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Карточка игрока</title>
+    <title>Gamer Card</title>
     <link
       rel="icon"
       type="image/jpeg"
@@ -11,10 +11,169 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
+      href="{{ url_for('static', filename='css/style2.css') }}"
     />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   </head>
   <body>
-   
+    <div class="stats_container">
+      <div class="inner_block">
+        <div class="stat_container__inner last">
+          <div id="statistic" class="three_blocks">
+            <div class="stats_block">
+              <div class="name_data">ELO</div>
+              <div class="data" id="elo"></div>
+            </div>
+            <div class="stats_block">
+              <div class="name_data">AVG</div>
+              <div class="data" id="avg_kills"></div>
+            </div>
+            <div class="stats_block last">
+              <div class="name_data">K/D</div>
+              <div class="data" id="kd_ratio"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Добавим контейнер для графика -->
+    <canvas id="radarChart"></canvas>
+
+    <script>
+      // Создание графика
+      var chart; // Глобальная переменная для графика
+
+      function createRadarChart(radarData) {
+        var ctx = document.getElementById("radarChart").getContext("2d");
+
+        // Если график уже создан, обновим только данные
+        if (chart) {
+          chart.data.datasets[0].data = radarData; // Обновляем данные в графике
+          chart.update(); // Применяем анимацию для обновления
+        } else {
+          // Если графика нет, создаем новый
+          chart = new Chart(ctx, {
+            type: "radar",
+            data: {
+              labels: ["FIREPOWER", "AIM", "ENTRY", "UTILITY", "ADR"],
+              datasets: [
+                {
+                  label: "Значения",
+                  data: radarData, // Используем новые данные
+                  fill: true,
+                  backgroundColor: "hsla(0, 0%, 98%, 0.67)",
+                  borderColor: "white",
+                  borderWidth: 0.5,
+                  pointRadius: 9,
+                  pointBackgroundColor: "white",
+                  pointBorderColor: "white",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+              },
+              scales: {
+                r: {
+                  beginAtZero: true,
+                  min: 0,
+                  max: 100,
+                  grid: { color: "hsla(0, 0%, 78%, 0.67)", lineWidth: 2.5 },
+                  ticks: { display: false },
+                  pointLabels: {
+                    size: 23,
+                    font: { family: "Roboto Condensed", size: 38, weight: 800 },
+                    color: "#fff",
+                  },
+                },
+              },
+              animation: {
+                duration: 1000, // Время анимации при обновлении
+              },
+            },
+          });
+        }
+      }
+
+      const radarCanvas = document.getElementById("radarChart");
+      const statistic = document.getElementById("statistic");
+
+      function showRadar() {
+        radarCanvas.style.transition = "opacity 1s ease";
+        radarCanvas.style.opacity = 1;
+        statistic.style.opacity = 0;
+      }
+
+      function hideRadar() {
+        radarCanvas.style.transition = "opacity 1s ease";
+        radarCanvas.style.opacity = 0;
+      }
+
+      function showBlocks() {
+        statistic.style.transition = "opacity 1s ease";
+        statistic.style.opacity = 1;
+      }
+
+      function hideBlocks() {
+        statistic.style.transition = "opacity 1s ease";
+        statistic.style.opacity = 0;
+      }
+
+      // Начинаем с показа диаграммы
+      showRadar();
+
+      setInterval(() => {
+        // 1. Через 5 секунд скрываем блоки
+        setTimeout(() => {
+          hideBlocks();
+        }, 25000);
+
+        // 2. Через 6 секунд показываем диаграмму
+        setTimeout(() => {
+          showRadar();
+        }, 26000);
+
+        // 3. Через 11 секунд скрываем диаграмму
+        setTimeout(() => {
+          hideRadar();
+        }, 51000);
+
+        // 4. Через 12 секунд снова показываем блоки
+        setTimeout(() => {
+          showBlocks();
+        }, 52000);
+      }, 52000); // Полный цикл 12 секунд
+
+      // Функция для запроса данных из JSON файла
+      function loadData() {
+        fetch("/gamercard_data/") // Путь к твоему JSON файлу
+          .then((response) => response.json()) // Преобразуем ответ в JSON
+          .then((data) => {
+            // Обновляем данные на странице
+            document.getElementById("elo").textContent = data.elo;
+            document.getElementById("avg_kills").textContent = data.avg_kills;
+            document.getElementById("kd_ratio").textContent = data.kd_ratio;
+
+            // Обновляем график
+            createRadarChart(data.radar_data);
+          })
+          .catch((error) =>
+            console.error("Ошибка при загрузке данных:", error)
+          ); // Если ошибка
+      }
+
+      // Загружаем данные при запуске страницы
+      window.onload = loadData;
+
+      // Таймер для обновления данных каждые 5 секунд
+      setInterval(loadData, 5000);
+    </script>
   </body>
 </html>
